@@ -24,6 +24,29 @@ export const useGetPosts = (filter = {}) => {
     });
 };
 
+
+
+
+export const useGetLogs = ()=> {
+    return useQuery({
+        queryKey: ['logs'], 
+        queryFn: async () => {
+            try {
+                const result = await axiosInstance.get(`/logs`);
+                if (result.status === 200) {
+                    return result.data.data;
+                }
+            } catch (e) {
+                if (e instanceof AxiosError) {
+                    console.log(e);
+                }
+            }
+        },
+    });
+};
+
+
+
 export const useGetUsers = ()=> {
     return useQuery({
         queryKey: ['users'],
@@ -70,6 +93,7 @@ export const useModifyRoleUser= () => {
         mutationFn: modifyRoleUser,
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['users']})
+            queryClient.invalidateQueries({ queryKey: ['logs'] });
         }
     })
     return {useModifyRoleUserAsync};
@@ -101,6 +125,7 @@ export const useAddPost= () => {
         mutationFn: addPost,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['posts'] });
+            queryClient.invalidateQueries({ queryKey: ['logs'] });
         },
     });
     return { useAddPostAsync }
@@ -127,6 +152,7 @@ export const useModifyStatusPost = () => {
         mutationFn: modifyStatusPost,
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['posts']})
+            queryClient.invalidateQueries({ queryKey: ['logs'] });
         }
     })
     return {useModifyStatusPostAsync};
@@ -150,6 +176,7 @@ export const useDeletePost = () => {
         mutationFn: deletePost,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['posts'] })
+            queryClient.invalidateQueries({ queryKey: ['logs'] });
         }
     })
     return { useDeletePostAsync};
@@ -202,6 +229,7 @@ export const useAddUser= () => {
         mutationFn: addUser,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['logs'] });
         },
     });
     return { useAddUserAsync}
@@ -239,6 +267,7 @@ export const useRegister = () => {
         mutationFn: register,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['logs'] });
         },
     });
     return { useRegisterAsync}

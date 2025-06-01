@@ -8,6 +8,7 @@ import expressMySQLSession from 'express-mysql-session';
 import { router as userRoutes } from './routes/userRoute.js';
 import { router as postRoutes } from './routes/postRoute.js';
 
+import { router as logRoutes} from './routes/logRoute.js';
 const app = express()
 
 app.use(cors({ 
@@ -42,6 +43,7 @@ let connection;
 
   app.use('/api/users', userRoutes);
   app.use('/api/posts', postRoutes); 
+  app.use('/api/logs', logRoutes); 
 
 const runBackend = async () => {
 
@@ -63,13 +65,16 @@ const runBackend = async () => {
         console.log(process.env.PORT);
     });
 
+    await connection.query(
+        `DROP TABLE IF EXISTS user`
+    )
+    await connection.query(
+        `DROP TABLE IF EXISTS post`
+    )
+    await connection.query(
+        `DROP TABLE IF EXISTS log`
+    )
 
-    await connection.query(
-        `DROP TABLE user`
-    )
-    await connection.query(
-        `DROP TABLE post`
-    )
     const userTable =
         `CREATE TABLE IF NOT EXISTS user (
             id INT PRIMARY KEY AUTO_INCREMENT,
@@ -93,6 +98,19 @@ const runBackend = async () => {
         );`
 
     await connection.query(postTable);
+
+
+    const logTable = `
+        CREATE TABLE IF NOT EXISTS log (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT REFERENCES user(id),
+            user_role ENUM('admin', 'manager', 'regular'),
+            message VARCHAR(255),
+            status ENUM('success', 'fail'),
+            timestamp DATETIME
+        );
+    `
+    await connection.query(logTable);
 
     //predefined users
     await connection.query(

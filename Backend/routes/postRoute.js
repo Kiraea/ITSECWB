@@ -1,7 +1,7 @@
 import express from 'express';
 import { connection } from '../index.js';
 import { verifySessionToken, verifyRole } from '../sessionUtils.js';
-
+import { putToLogTable } from '../logUtils.js';
 
 
 
@@ -35,7 +35,9 @@ router.get('/', verifySessionToken, verifyRole, async (req,res) => {
 
         const [rows, fields] = await connection.execute(sql, params);
 
-        console.log(rows);
+
+
+
         return res.status(200).json({message: "all posts received", status: "success", data: rows})
     } catch (err) {
         console.log(err);
@@ -60,6 +62,18 @@ router.post('/', verifySessionToken, verifyRole, async (req,res)=> {
         console.log(title, description, userId, status);
         const [result, fields] = await connection.execute(sql,[title, description, userId, status]);
 
+
+
+        try{
+            let currDate = new Date()
+            console.log("THIS RUN");
+           await putToLogTable(userId, `user ${userId} created a post`, role,  "success", currDate) 
+        }catch(e){
+            console.log(e)
+        }
+
+
+
         return res.status(200).json({message: "sucesfully made a post", status:"success"})
     } catch (err) {
 
@@ -82,8 +96,30 @@ router.patch('/changeStatus/:id', verifySessionToken, verifyRole, async (req,res
        
         const [result] = await connection.query(changeStatusQuery,[status, id]);
         if (result.affectedRows > 0){
+
+
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(userId, `user ${userId} modified postId ${id}`, req.role, "success", currDate)
+            } catch (e) {
+                console.log(e)
+            }
+
+
+
+
+
             return res.status(200).json({message: "modified post status", status:"success"})
         }else{
+
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(userId, `user ${userId} tried to modify postId ${id} but did not work`, req.role,  "fail", currDate)
+            } catch (e) {
+                console.log(e)
+            }
 
             return res.status(400).json({message: "did not modify anything", status:"fail"})
         }
@@ -115,17 +151,61 @@ router.delete('/:id', verifySessionToken, verifyRole, async (req,res)=> {
             deleteQuery = `DELETE FROM post where id = ? AND user_id = ?`
             params.push(id, userId)
         } else{
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(userId, `user ${userId} tried to delete postId ${id} but not authorized`, role, "fail", currDate)
+            } catch (e) {
+                console.log(e)
+            }
+
+
+
+
+
             return res.status(403).json({message: "Not Authorized", status:"fail"});
         }
 
         let [result] = await connection.execute(deleteQuery, params);
         if (result.affectedRows > 0) {
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(userId, `user ${userId} Deleted postId ${id} `, role,  "success", currDate)
+            } catch (e) {
+                console.log(e)
+            }
+
+
+
             return res.status(200).json({ message: "post deleted", status: "success" });
         } else {
+
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(userId, `user ${userId} tried to delete postId ${id} but post not found`, role, "fail", currDate)
+            } catch (e) {
+                console.log(e)
+            }
+
             return res.status(404).json({ message: "post not found ", status: "fail" });
         }
 
     }catch(e){
+
+
+
+        try {
+            let currDate = new Date()
+            await putToLogTable(userId, `user ${userId} tried to delete postId ${id} but failed due to server error`, role, "fail", currDate)
+        } catch (e) {
+            console.log(e)
+        }
+
+
+
+
 
         console.log(e)
         return res.status(500).json({ message: "server error, please try again later ", status: "fail" });

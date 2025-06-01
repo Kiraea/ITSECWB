@@ -31,7 +31,7 @@ export const MyPosts = () => {
                     {postData && postData.map((post) => {
                         return (
                             <div key={post.id} className="flex flex-col border-2 border-black">
-                                {role === 'admin' || userId === post.userId ? <button onClick={(e) => handleDeletePost(e, post.id)}>X</button> : null}
+                                {role === 'admin' || userId === post.user_id? <button onClick={(e) => handleDeletePost(e, post.id)}>X</button> : null}
                                 <div className="bg-yellow-100">Made by: {post.display_name}</div>
                                 <div className="bg-red-100">{post.title}</div>
                                 <div className="bg-gray-100">{post.description}</div>
