@@ -3,6 +3,16 @@ import { connection } from '../index.js';
 import argon from 'argon2'; 
 import { verifySessionToken,verifyRole } from '../sessionUtils.js';
 import { putToLogTable } from '../logUtils.js';
+import { limiter } from '../limiterUtil.js';
+
+import { z } from "zod/v4";
+
+
+const UserRegisterSchema = z.object({
+  username: z.string().min(5).max(20),
+  password: z.string().min(8).max(20),
+  displayName: z.string().min(3).max(20),
+});
 
 
 const router = express.Router()
@@ -10,7 +20,23 @@ const router = express.Router()
 router.post('/register', async (req, res) => {
 
     const {username, password, displayName} = req.body;
-    console.log(username, password, displayName)
+    
+
+    if (!username || !password ||  !displayName){
+        res.status(400).json({message: "incomplete fields", status:"fail"});
+    }
+    try {
+        const input = { username: username, password: password, displayName: displayName }
+        const data = UserRegisterSchema.parse(input)
+    } catch (e) {
+        const errors = z.prettifyError(e);
+
+        res.status(400).json({message: errors, status:"fail"});
+        return;
+    }
+
+
+
 
     try{
         let checkIfExistQuery = `SELECT u.* FROM user u WHERE u.username = ?`
@@ -28,7 +54,7 @@ router.post('/register', async (req, res) => {
 
 
 
-            return res.status(400).json({message: "user already exist", status:"fail"});
+            return res.status(400).json({message: "invalid register details", status:"fail"});
         }
 
 
@@ -47,13 +73,13 @@ router.post('/register', async (req, res) => {
 
 
 
-            return res.status(400).json({message: "display name already taken", status:"fail"});
+            return res.status(400).json({message: "invalid register details", status:"fail"});
         }
 
         let hashedPassword = await argon.hash(password);
 
 
-        let createUserQuery = 'INSERT INTO user (username, password, display_name, role) VALUES (?, ? ,?, ?)';
+        let createUserQuery = 'INSERT INTO user (username, password, display_name, roled) VALUES (?, ? ,?, ?)';
         
         let [results] = await connection.query(createUserQuery, [username, hashedPassword, displayName, "regular"]);
         console.log(results)
@@ -206,7 +232,7 @@ router.post('/createUser', verifySessionToken, verifyRole, async (req, res) => {
 
 
 
-router.post('/login', async (req, res) => {
+router.post('/login', limiter, async (req, res) => {
     const {username, password} = req.body
     console.log(username, password, "KDOSAKDOA")
     let findUserQuery = `
@@ -390,6 +416,19 @@ router.patch('/:id/modifyRole', verifySessionToken, verifyRole, async (req,res) 
 
         return res.status(500).json({ message: 'server error', status: 'fail' });
     }
+
+})
+
+
+router.post('/resetPassword', verifySessionToken, verifyRole, async (req,res)=>  {
+    const role = req.role
+    const userId = req.userId
+
+
+    const {securityData, password, passwordConfirm} = req.body;
+
+       
+
 
 })
 export {router}

@@ -7,12 +7,9 @@ import { ErrorContext } from "../Context/ErrorContext";
 import { AuthContext } from "../Context/AuthContext";
 import { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-const passwordChecks = (password) => {
-    if (password.length === false){
 
-    }
-}
 
+ 
 
 export const LoginPage = () => {
 
@@ -35,6 +32,11 @@ export const LoginPage = () => {
 
     const handleLoginSubmit= async (e) => {
         e.preventDefault()
+
+
+
+
+
         try {
             const result = await axiosInstance.post(`http://localhost:3000/api/users/login`, {
                 username: usernameInput,

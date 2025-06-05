@@ -1,9 +1,14 @@
+
+
 import cors from 'cors'
 import 'dotenv/config'
 import mysql from 'mysql2/promise';
 import express from 'express'
 import session from 'express-session'
 import expressMySQLSession from 'express-mysql-session';
+
+
+
 
 import { router as userRoutes } from './routes/userRoute.js';
 import { router as postRoutes } from './routes/postRoute.js';
@@ -19,6 +24,9 @@ app.use(cors({
 
 app.use(express.json()); // 
 app.use(express.urlencoded({extended:true}));
+
+
+
 
 const options = {
 	host: 'localhost',
@@ -41,9 +49,12 @@ app.use(session({
 
 let connection;
 
+
   app.use('/api/users', userRoutes);
   app.use('/api/posts', postRoutes); 
   app.use('/api/logs', logRoutes); 
+
+
 
 const runBackend = async () => {
 
@@ -78,14 +89,15 @@ const runBackend = async () => {
     const userTable =
         `CREATE TABLE IF NOT EXISTS user (
             id INT PRIMARY KEY AUTO_INCREMENT,
-            username VARCHAR(50),
-            password VARCHAR(255),
-            display_name VARCHAR(50),
-            role ENUM('admin', 'manager', 'regular')
+            username VARCHAR(50) NOT NULL,
+            password VARCHAR(255) UNIQUE NOT NULL,
+            display_name VARCHAR(50) NOT NULL,
+            role ENUM('admin', 'manager', 'regular') NOT NULL
         );`
 
 
     await connection.query(userTable);
+
 
 
     const postTable = 
