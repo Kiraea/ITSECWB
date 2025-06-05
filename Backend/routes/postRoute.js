@@ -101,7 +101,7 @@ router.patch('/changeStatus/:id', verifySessionToken, verifyRole, async (req,res
 
             try {
                 let currDate = new Date()
-                await putToLogTable(userId, `user ${userId} modified postId ${id}`, req.role, "success", currDate)
+                await putToLogTable(req.userId, `user ${req.userId} modified postId ${id}`, req.role, "success", currDate)
             } catch (e) {
                 console.log(e)
             }
