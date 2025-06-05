@@ -5,8 +5,6 @@ import { AxiosError } from "axios";
 import { ErrorContext } from "../Context/ErrorContext";
 import { axiosInstance } from "../axiosInstance";
 import { useRegister } from "../queries";
-
-
 export const RegisterPage = () => {
 
 

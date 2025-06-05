@@ -4,6 +4,10 @@ import axios, { AxiosError } from "axios"
 import { axiosInstance } from "./axiosInstance"
 import { ErrorContext} from "./Context/ErrorContext";
 import { useContext } from "react";
+
+
+
+
 export const useGetPosts = (filter = {}) => {
 
     const {addError} = useContext(ErrorContext)
@@ -32,6 +36,9 @@ export const useGetPosts = (filter = {}) => {
 
 
 export const useGetLogs = ()=> {
+
+
+    const {addError} = useContext(ErrorContext)
     return useQuery({
         queryKey: ['logs'], 
         queryFn: async () => {
@@ -54,6 +61,10 @@ export const useGetLogs = ()=> {
 
 
 export const useGetUsers = ()=> {
+
+
+
+    const {addError} = useContext(ErrorContext)
     return useQuery({
         queryKey: ['users'],
         queryFn: async () => {
@@ -81,6 +92,9 @@ export const useGetUsers = ()=> {
 
 
 export const modifyRoleUser= async ({userId, role}) => {
+
+
+    const {addError} = useContext(ErrorContext)
     try {
         console.log(userId, role, "queries")
         let result = await axiosInstance.patch(`/users/${userId}/modifyRole`, {role: role});
@@ -115,6 +129,7 @@ export const useModifyRoleUser= () => {
 
 export const addPost= async ({ title, description}) => {
 
+    const {addError} = useContext(ErrorContext)
     try {
         let result = await axiosInstance.post(`/posts`, {title: title, description: description })
         if (result.status === 200) {
@@ -145,6 +160,9 @@ export const useAddPost= () => {
 
 
 export const modifyStatusPost = async ({postId, status}) => {
+
+
+    const {addError} = useContext(ErrorContext)
     try {
         let result = await axiosInstance.patch(`posts/changeStatus/${postId}`, {status: status});
         if (result.status === 200) {
@@ -173,6 +191,8 @@ export const useModifyStatusPost = () => {
 
 
 export const deletePost = async ({postId}) => {
+
+    const {addError} = useContext(ErrorContext)
     try{
         let result = await axiosInstance.delete(`/posts/${postId}`);    
         return result.data.message
@@ -198,6 +218,9 @@ export const useDeletePost = () => {
 
 
 export const useGetPublicDetails = () => { 
+
+
+    const {addError} = useContext(ErrorContext)
     return useQuery({
         queryKey: ['userPublicInfo'],
         queryFn: async () => {
@@ -209,6 +232,7 @@ export const useGetPublicDetails = () => {
                 }
             } catch (e) {
                 if (e instanceof AxiosError) {
+                    addError(e.response.data?.message)
                     console.log(e);
                 }
             }
@@ -223,6 +247,7 @@ export const useGetPublicDetails = () => {
 
 export const addUser = async ({ username, password, displayName, role }) => {
 
+    const {addError} = useContext(ErrorContext)
     try {
         let result = await axiosInstance.post(`/users/createUser`, { username: username, password: password, displayName: displayName, role: role })
         if (result.status === 200) {
@@ -261,6 +286,8 @@ export const useAddUser= () => {
 
 export const register = async ({ username, password, displayName}) => {
 
+    const {addError} = useContext(ErrorContext)
+
     try {
         const result = await axiosInstance.post(`http://localhost:3000/api/users/register`, {
             username: username,
@@ -269,6 +296,8 @@ export const register = async ({ username, password, displayName}) => {
         })
     } catch (e) {
         if (e instanceof AxiosError) {
+
+            addError(e.response.data?.message)
             throw(e.response?.data?.message)
         }  
     }
