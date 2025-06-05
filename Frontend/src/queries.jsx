@@ -2,9 +2,12 @@
 import { QueryCache, QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
 import { axiosInstance } from "./axiosInstance"
-
-
+import { ErrorContext} from "./Context/ErrorContext";
+import { useContext } from "react";
 export const useGetPosts = (filter = {}) => {
+
+    const {addError} = useContext(ErrorContext)
+
     return useQuery({
         queryKey: ['posts', filter], 
         queryFn: async () => {
@@ -17,6 +20,7 @@ export const useGetPosts = (filter = {}) => {
                 }
             } catch (e) {
                 if (e instanceof AxiosError) {
+                     addError(e.response.data?.message)
                     console.log(e);
                 }
             }
@@ -38,6 +42,8 @@ export const useGetLogs = ()=> {
                 }
             } catch (e) {
                 if (e instanceof AxiosError) {
+
+                     addError(e.response.data?.message)
                     console.log(e);
                 }
             }
@@ -59,6 +65,8 @@ export const useGetUsers = ()=> {
                 }
             } catch (e) {
                 if (e instanceof AxiosError) {
+
+                     addError(e.response.data?.message)
                     console.log(e);
                 }
             }
@@ -81,6 +89,8 @@ export const modifyRoleUser= async ({userId, role}) => {
         }
     }catch(e){
         if (e instanceof AxiosError) {
+
+            addError(e.response.data?.message)
             throw e
         }
     }
@@ -112,6 +122,8 @@ export const addPost= async ({ title, description}) => {
         }
     } catch (e) {
         if (e instanceof AxiosError) {
+
+            addError(e.response.data?.message)
             console.log(e)
         }
     }
@@ -140,6 +152,7 @@ export const modifyStatusPost = async ({postId, status}) => {
         }
     }catch(e){
         if (e instanceof AxiosError) {
+            addError(e.response.data?.message)
             console.log(e)
         }
     }
@@ -165,6 +178,7 @@ export const deletePost = async ({postId}) => {
         return result.data.message
     }catch(e){
         if (e instanceof AxiosError){
+            addError(e.response.data?.message)
             console.log(e)
         }
     }
@@ -216,6 +230,7 @@ export const addUser = async ({ username, password, displayName, role }) => {
         }
     } catch (e) {
         if (e instanceof AxiosError) {
+            addError(e.response.data?.message)
             console.log(e)
         }
     }
