@@ -15,7 +15,7 @@ export const AuthContextProvider = ({children}) => {
     console.log(location.pathname);
     useEffect(()=> {
 
-        if (location.pathname === '/login' || location.pathname === '/register') {
+        if (location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/resetPassword') {
             setIsLoading(false);
             return;
           }

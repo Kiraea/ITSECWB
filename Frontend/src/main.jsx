@@ -16,7 +16,7 @@ import { MyPosts } from './Pages/MyPosts.jsx';
 import {QueryClient, useQueryClient, QueryClientProvider} from '@tanstack/react-query';
 import { HomePage } from './Pages/HomePage.jsx';
 import { ProtectedRouteWithOutlet } from './ProtectedRouteWithOutlet.jsx';
-
+import { ForgotPasswordPage } from './Pages/ForgotPasswordPage.jsx';
 const queryClient = new QueryClient()
 
 
@@ -33,6 +33,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/" element={<LoginPage/>}/>
           <Route path='/login' element={<LoginPage/>}/>
           <Route path='/register' element={<RegisterPage/>}/>
+          <Route path='/resetPassword' element={<ForgotPasswordPage/>}/>
           <Route path='/unauthorized' element={<UnauthorizedPage/>}/>
 
           <Route path='/home' element={

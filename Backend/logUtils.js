@@ -2,10 +2,15 @@ import { connection } from "./index.js"
 
 const putToLogTable = async  (userId, message, role, status, timestamp) => {
     
-    if (!userId || !role || !message || !status || !timestamp){
-        throw new  Error(`Missing Required Fields`);
+    if (
+        userId === undefined ||
+        role === undefined ||
+        message === undefined ||
+        status === undefined ||
+        timestamp === undefined
+    ) {
+        throw new Error('Missing Required Fields');
     }
-
 
     console.log("LOG ROUTE", role);
     try{

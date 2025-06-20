@@ -32,6 +32,29 @@ export const useGetPosts = (filter = {}) => {
     });
 };
 
+export const useGetQuestions = () => {
+
+    const {addError} = useContext(ErrorContext)
+
+    return useQuery({
+        queryKey: ['questions'], 
+        queryFn: async () => {
+            try {
+                const result = await axiosInstance.get(`/questions`);
+                if (result.status === 200) {
+                    return result.data.data;
+                }
+            } catch (e) {
+                if (e instanceof AxiosError) {
+                    addError(e.response.data?.message)
+                    console.log(e);
+                }
+            }
+        },
+    });
+};
+
+
 
 
 
@@ -295,7 +318,7 @@ export const useAddUser= () => {
 
 
 
-export const register = async ({ username, password, displayName}) => {
+export const register = async ({ username, password, displayName, securityQuestionId, answer}) => {
 
 
     try {
@@ -303,6 +326,8 @@ export const register = async ({ username, password, displayName}) => {
             username: username,
             password: password,
             displayName: displayName,
+            securityQuestionId: securityQuestionId,
+            answer: answer
         })
     } catch (e) {
         if (e instanceof AxiosError) {
@@ -329,5 +354,46 @@ export const useRegister = () => {
     });
     return { useRegisterAsync}
 }
+
+
+
+
+export const forgotPassword = async ({ username, newPassword, securityQuestionId, answer}) => {
+    try {
+        const result = await axiosInstance.post(`http://localhost:3000/api/users/forgotPassword`, {
+            username: username,
+            newPassword: newPassword,
+            securityQuestionId: securityQuestionId,
+            answer : answer,
+        })
+    } catch (e) {
+        if (e instanceof AxiosError) {
+            throw(e)
+        }  
+    }
+}
+
+
+export const useForgotPassword = () => {
+    const queryClient = useQueryClient()
+
+    const {addError} = useContext(ErrorContext)
+    const { mutateAsync: useForgotPasswordAsync} = useMutation({
+        mutationFn: forgotPassword,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['logs'] });
+        },
+        onError: (e) => {
+            addError(e.response.data?.message)
+        }
+    });
+    return { useForgotPasswordAsync }
+}
+
+
+
+
+
 
 

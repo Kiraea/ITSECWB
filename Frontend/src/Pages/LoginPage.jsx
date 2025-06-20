@@ -7,7 +7,7 @@ import { ErrorContext } from "../Context/ErrorContext";
 import { AuthContext } from "../Context/AuthContext";
 import { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-
+import { Link } from "react-router";
 
  
 
@@ -75,7 +75,9 @@ export const LoginPage = () => {
                 <label>Password</label>
                 <input type="password" onChange={(e)=> {setPasswordInput(e.target.value)}}/>
                 <button type="submit">Submit</button>
+
              </form>
+             <Link to='/resetPassword'>Forgot Your Password?</Link>
         </div>
     )
 }

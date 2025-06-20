@@ -14,6 +14,7 @@ import { router as userRoutes } from './routes/userRoute.js';
 import { router as postRoutes } from './routes/postRoute.js';
 
 import { router as logRoutes} from './routes/logRoute.js';
+import { router as questionRoutes} from './routes/securityQuestion.js';
 const app = express()
 
 app.use(cors({ 
@@ -53,6 +54,7 @@ let connection;
   app.use('/api/users', userRoutes);
   app.use('/api/posts', postRoutes); 
   app.use('/api/logs', logRoutes); 
+  app.use('/api/questions', questionRoutes); 
 
 
 
@@ -85,19 +87,64 @@ const runBackend = async () => {
     await connection.query(
         `DROP TABLE IF EXISTS log`
     )
+    await connection.query(
+        `DROP TABLE IF EXISTS security_answer`
+    )
+    await connection.query(
+        `DROP TABLE IF EXISTS security_question`
+    )
+
 
     const userTable =
         `CREATE TABLE IF NOT EXISTS user (
             id INT PRIMARY KEY AUTO_INCREMENT,
-            username VARCHAR(50) NOT NULL,
+            username VARCHAR(50) UNIQUE NOT NULL,
             password VARCHAR(255) UNIQUE NOT NULL,
             display_name VARCHAR(50) NOT NULL,
-            role ENUM('admin', 'manager', 'regular') NOT NULL
+            role ENUM('admin', 'manager', 'regular') NOT NULL,
+            no_of_attempts INT DEFAULT 0,
+            locked_out_until DATETIME
         );`
 
 
     await connection.query(userTable);
 
+
+    const securityQuestionsTable = `
+        CREATE TABLE security_question (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            question VARCHAR(255) UNIQUE NOT NULL
+        );
+    `
+    await connection.query(securityQuestionsTable);
+
+
+    const insertQuestions = `
+    INSERT IGNORE INTO security_question (question) VALUES 
+    (?), (?), (?), (?), (?);
+    `;
+
+    const questions = [
+        "What is the first name of your favorite childhood teacher?",
+        "What was the name of your first childhood pet?",
+        "What city were you born in?",
+        "What is your oldest sibling’s middle name?",
+        "Where was the destination of your most memorable school field trip?"
+    ];
+
+    await connection.execute(insertQuestions, questions);
+
+
+
+    const securityAnswersTable = `
+        CREATE TABLE security_answer (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        question_id INT NOT NULL REFERENCES security_question(id) ON DELETE CASCADE,
+        user_username VARCHAR(50) NOT NULL REFERENCES user(username) ON DELETE CASCADE,
+        answer VARCHAR(255) NOT NULL
+        );
+    `
+    await connection.query(securityAnswersTable);
 
 
     const postTable = 

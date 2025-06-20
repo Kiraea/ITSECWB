@@ -5,7 +5,7 @@ import { AxiosError } from "axios";
 import { ErrorContext } from "../Context/ErrorContext";
 import { axiosInstance } from "../axiosInstance";
 import { useRegister } from "../queries";
-
+import {useGetQuestions } from "../queries";
 import { z } from "zod/v4";
 const UserRegisterSchema = z.object({
   username: z.string().min(5).max(20),
@@ -20,10 +20,12 @@ const UserRegisterSchema = z.object({
 
   displayName: z.string().min(3).max(20),
 
+
 });
 export const RegisterPage = () => {
 
 
+    let { data: questionsData, isLoading: questionsIsLoading, isError: questionsIsError, error: questionsError} = useGetQuestions();
 
     const {useRegisterAsync} = useRegister()
     const {addError} = useContext(ErrorContext);
@@ -31,6 +33,8 @@ export const RegisterPage = () => {
     const [usernameInput, setUsernameInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [displayNameInput, setDisplayNameInput] = useState("");
+    const [securityQuestionIdInput, setSecurityQuestionIdInput] = useState(-1);
+    const [answerInput, setAnswerInput] = useState("");
     const navigate = useNavigate()
     
 
@@ -39,25 +43,30 @@ export const RegisterPage = () => {
 
         e.preventDefault()
         try{
-            const input = {username: usernameInput, password: passwordInput, displayName: displayNameInput}
+            const input = {username: usernameInput, password: passwordInput, displayName: displayNameInput};
             const data = UserRegisterSchema.parse(input)
         }catch(e){
             const errors = z.prettifyError(e);
             addError(errors);
-
             return;
         }
-
+        if (securityQuestionIdInput === -1){
+            addError("choose a security question");
+            return;
+        }
         
         try{
-            await useRegisterAsync ({username: usernameInput, password: passwordInput, displayName: displayNameInput})
+            await useRegisterAsync ({username: usernameInput, password: passwordInput, displayName: displayNameInput, securityQuestionId: securityQuestionIdInput, answer: answerInput})
+
+
             navigate('/login');
         }catch(e){
             console.log(e);
         }
        
     }
-
+    if (questionsIsLoading) return <p>Loading...</p>;
+    if (questionsIsError) return <p>Error: {questionsError.message}</p>;
 
     return (
         <div>
@@ -70,6 +79,22 @@ export const RegisterPage = () => {
                  
                 <label>Display Name</label>
                 <input type="text" onChange={(e)=> {setDisplayNameInput(e.target.value)}} />
+
+
+                <label>Select a security question</label>
+                <select value={securityQuestionIdInput} onChange={(e) => setSecurityQuestionIdInput(e.target.value)}>
+                    {questionsData.map((q) => (
+                        <option key={q.id} value={q.id}>
+                            {q.question}
+                        </option>
+                    ))}
+                </select>
+
+
+                <label>Answer </label>
+                <input type="text" onChange={(e) => { setAnswerInput(e.target.value) }} />
+
+
                 <button type="submit">Submit</button>
              </form>
         </div>
