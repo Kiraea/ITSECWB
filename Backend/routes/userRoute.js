@@ -529,10 +529,26 @@ router.post('/forgotPassword', async (req,res)=>  {
         let [results] = await connection.execute(findUserQuery, [username]);
 
         if (results.length === 0) {
+
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(null, `someone tried to forgot password but no user found`, null, "fail", currDate)
+            } catch (e) {
+                console.log(e)
+            }
+
             return res.status(400).json({ message: 'invalid please try again', status: 'fail' });
         }
     }catch(e){
         console.log(e)
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(null, `someone tried to forgot password but server error`, null, "fail", currDate)
+            } catch (e) {
+                console.log(e)
+            }
         return res.status(500).json({ message: 'server error, please try again', status: 'fail' });
     }
 
@@ -549,6 +565,13 @@ router.post('/forgotPassword', async (req,res)=>  {
         let [results2] = await connection.execute(checkSecurityAnswerQuery, [username, securityQuestionId, answer]);
 
         if (results2.length === 0) {
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(null, `username of ${username} tried to forgot password but invalid credentials`, null, "fail", currDate)
+            } catch (e) {
+                console.log(e)
+            }
             return res.status(400).json({ message: 'invalid please try again', status: 'fail' });
         }
     }catch(e){
@@ -561,8 +584,23 @@ router.post('/forgotPassword', async (req,res)=>  {
     let hashedPassword = await argon.hash(newPassword);
     try{
         let result3 = await connection.execute('UPDATE user SET password = ? WHERE username = ? ', [hashedPassword, username]);
+
+            try {
+                let currDate = new Date()
+                await putToLogTable(null, `username of ${username} succesfully changed their password`, null, "fail", currDate)
+            } catch (e) {
+                console.log(e)
+            }
         return res.status(200).json({ message: 'password succesfully updated ', status: 'success' });
     }catch(e){
+
+        try {
+            let currDate = new Date()
+            await putToLogTable(null, `username of ${username} tried to change their password but server error`, null, "fail", currDate)
+        } catch (e) {
+            console.log(e)
+        }
+
         console.log(e)
         return res.status(500).json({ message: 'server error, please try again', status: 'fail' });
     }
