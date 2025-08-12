@@ -10,7 +10,10 @@ import { z } from "zod/v4";
 const UserRegisterSchema = z.object({
 
 //edited this part for data validation
-
+//===============================================
+//  2.3.2 Validate data range
+//  2.3.3 Validate data length
+//===============================================
         username: z.string()
         .min(5, "Username must be at least 5 characters")
         .max(20, "Username must be at most 20 characters")
@@ -50,7 +53,13 @@ router.post('/register', async (req, res) => {
         return res.status(400).json({ messages: ["Invalid security question ID"], status: "fail" });
     }
 
- //Edits to include the Username, Password, and DisplayName Validation
+//================================================================================================
+//  2.3.1 All validation failures should result in input rejection. Sanitizing should not be used
+//  2.3.2 Validate data range
+//  2.3.3 Validate data length
+//================================================================================================
+ 
+//Edits to include the Username, Password, and DisplayName Validation
         //Checks if username uses a-z, A-Z and numbers 0-9
         if (typeof username !== 'string' || username.length < 5 || username.length > 20 || !/^[a-zA-Z0-9]+$/.test(username)) {
             return res.status(400).json({ error: 'Username must be 5–20 characters, and only inlcudes letters and numbers.' });
@@ -299,7 +308,11 @@ router.post('/createUser', verifySessionToken, verifyRole, async (req, res) => {
 
 
 
-
+//================================================================================================
+//  2.3.1 All validation failures should result in input rejection. Sanitizing should not be used
+//  2.3.2 Validate data range
+//  2.3.3 Validate data length
+//================================================================================================
 
 router.post('/login', async (req, res) => {
     const {username, password} = req.body
@@ -307,12 +320,12 @@ router.post('/login', async (req, res) => {
 
     //Data Validation here for username (a-z and A-Z and Number)
     if (typeof username !== 'string' || username.length < 5 || username.length > 20 || !/^[a-zA-Z0-9]+$/.test(username)) {
-        return res.status(400).json({ message: "Invalid username format", status: "fail" });
+        return res.status(400).json({ message: "Invalid username or password", status: "fail" });
     }
 
     //Data Validation here for password (a-z and A-Z and Number)
     if (typeof password !== 'string' || password.length < 8 || password.length > 64) {
-        return res.status(400).json({ message: "Invalid password length", status: "fail" });
+        return res.status(400).json({ message: "Invalid username or password", status: "fail" });
     }
 
 
