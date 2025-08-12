@@ -103,7 +103,11 @@ const runBackend = async () => {
             display_name VARCHAR(50) NOT NULL,
             role ENUM('admin', 'manager', 'regular') NOT NULL,
             no_of_attempts INT DEFAULT 0,
-            locked_out_until DATETIME
+            locked_out_until DATETIME,
+            password_last_changed DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_login_attempt DATETIME,
+            last_successful_login DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );`
 
 
