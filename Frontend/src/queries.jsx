@@ -401,7 +401,7 @@ export const useForgotPassword = () => {
 
 export const createLog = async ({ message, role, status, timestamp }) => {
     try {
-        const result = await axiosInstance.post(`http://localhost:3000/api/log`, {
+        const result = await axiosInstance.post(`http://localhost:3000/api/logs/log`, {
             message,
             role,
             status,
@@ -434,3 +434,40 @@ export const useCreateLog = () => {
 
 
 
+export const changePassword = async ({ currentPassword, newPassword }) => {
+    try {
+        const result = await axiosInstance.post(`http://localhost:3000/api/users/changePassword`, {
+            currentPassword,
+            newPassword
+        });
+        return result.data;
+    } catch (e) {
+        if (e instanceof AxiosError) {
+            throw e;
+        }
+    }
+};
+
+export const useChangePassword = () => {
+    const queryClient = useQueryClient();
+    const { addError } = useContext(ErrorContext);
+
+    const { mutateAsync: changePasswordAsync } = useMutation({
+        mutationFn: changePassword,
+        onSuccess: () => {
+            // You can invalidate any relevant query keys here if needed
+            queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+        },
+        onError: (e) => {
+            const messages = e.response.data?.messages;
+
+            if (Array.isArray(messages)) {
+                messages.forEach(msg => addError(msg)); // This will now run for all validation errors
+            } else if (e.response.data?.message) {
+                addError(e.response.data.message);
+            }
+        }
+    });
+
+    return { changePasswordAsync };
+};

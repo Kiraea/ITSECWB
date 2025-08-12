@@ -40,6 +40,11 @@ export const HomePage= () => {
                 {role === 'manager' &&  <button onClick={()=> navigate('/StatusPosts')}>Approve Posts</button>}
                 <button onClick={()=> navigate('/MyPosts')}>My Posts</button>
             </div>
+
+            <div>
+
+                <button onClick={()=> navigate('/changepassword')}>Change Password</button>
+            </div>
             <div>
                 <label>CREATE POST</label>
                 <form onSubmit={handleCreatePost}>

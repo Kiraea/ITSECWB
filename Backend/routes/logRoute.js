@@ -28,22 +28,42 @@ router.get('/', verifySessionToken, verifyRole, async (req, res) => {
 
 
 
-
 router.post("/log", async (req, res) => {
-    const userId = req.userId; // Comes from your auth middleware
-    const { message, role, status, timestamp } = req.body;
-
-    if (!userId || !role || !message || !status || !timestamp) {
-        return res.status(400).json({ error: "Missing Required Fields" });
-    }
-
     try {
-        const [result] = await connection.execute(`
-            INSERT INTO log (user_id, user_role, message, status, timestamp)
-            VALUES (?, ?, ?, ?, ?)
-        `, [userId, role, message, status, timestamp]);
+        let userId = null;
+        let role = null;
 
-        if (result.affectedRows === 1) {
+        // --- Try to get userId from session ---
+        const userSessionObject = req.session?.userSessionObject;
+        if (userSessionObject?.userId) {
+            userId = userSessionObject.userId;
+
+            // --- Try to get role from DB ---
+            const [result] = await connection.query(
+                `SELECT u.role FROM user u WHERE u.id = ?`,
+                [userId]
+            );
+            if (result.length) {
+                role = result[0].role;
+            }
+        }
+
+        // --- Validate request body ---
+        let { message, status, timestamp } = req.body;
+        timestamp = new Date(timestamp);
+        console.log(message, "DSA,DSAODKASO")
+        if (!message || !status || !timestamp) {
+            return res.status(400).json({ error: "Missing Required Fields" });
+        }
+
+        // --- Insert log ---
+        const [insertResult] = await connection.execute(
+            `INSERT INTO log (user_id, user_role, message, status, timestamp)
+             VALUES (?, ?, ?, ?, ?)`,
+            [userId, role, message, status, timestamp]
+        );
+
+        if (insertResult.affectedRows === 1) {
             return res.status(201).json({ message: "Log saved successfully" });
         } else {
             return res.status(500).json({ error: "Log was not saved" });

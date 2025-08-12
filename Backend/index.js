@@ -104,7 +104,7 @@ const runBackend = async () => {
             role ENUM('admin', 'manager', 'regular') NOT NULL,
             no_of_attempts INT DEFAULT 0,
             locked_out_until DATETIME,
-            password_last_changed DATETIME DEFAULT CURRENT_TIMESTAMP,
+            password_last_changed DATETIME DEFAULT NULL,
             last_login_attempt DATETIME,
             last_successful_login DATETIME,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -168,7 +168,7 @@ const runBackend = async () => {
             id INT PRIMARY KEY AUTO_INCREMENT,
             user_id INT REFERENCES user(id),
             user_role ENUM('admin', 'manager', 'regular'),
-            message VARCHAR(255),
+            message TEXT,
             status ENUM('success', 'fail'),
             timestamp DATETIME
         );

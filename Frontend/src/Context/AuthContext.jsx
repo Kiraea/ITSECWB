@@ -11,6 +11,7 @@ export const AuthContextProvider = ({children}) => {
     const [isLoading, setIsLoading] = useState(true)
     const [userId, setUserId] = useState(-1);
     const [role, setRole] = useState(null);
+    const [lastLogin, setLastLogin] = useState(null);
     const location = useLocation()
     console.log(location.pathname);
     useEffect(()=> {

@@ -28,7 +28,9 @@ export const Header = () => {
     return (
         <div className="flex flex-row justify-between">
              <div>Welcome, {userData.display_name} - {userData.role} </div>
-             <button onClick={handleLogout}>Logout</button>
+             <div>Last Successful login at: , {userData.last_successful_login} </div>
+             <div>Last Unsuccesful login at , {userData.last_login_attempt}  </div>
+             <button onClick={handleLogout}>Logout</button>    
         </div>
     )
 }

@@ -6,20 +6,26 @@ import { ErrorContext } from "../Context/ErrorContext";
 import { axiosInstance } from "../axiosInstance";
 import { useRegister } from "../queries";
 import {useGetQuestions } from "../queries";
+import { useCreateLog } from "../queries";
 import { z } from "zod/v4";
 const UserRegisterSchema = z.object({
-  username: z.string().min(5).max(20),
+    username: z.string()
+        .min(5, "Username must be at least 5 characters")
+        .max(20, "Username must be at most 20 characters")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter") //should have lowercase
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter"), //should have uppercase
 
+    password: z.string()
+        .min(8, "Password must be at least 8 characters") //min 8 length
+        .max(64, "Password must be at most 64 characters") //max 20 length
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter") //should have lowercase
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter") //should have uppercase 
+        .regex(/\d/, "Password must contain at least one number") // EDIT: number check
+        .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"), //should have special char 
 
-  password: z.string().min(8).max(20)
-  .regex(/[a-z]/, { message: "Password must contain a lowercase letter" })
-  .regex(/[A-Z]/, { message: "Password must contain an uppercase letter" })
-  .regex(/[0-9]/, { message: "Password must contain a number" })
-  .regex(/[^A-Za-z0-9]/, { message: "Password must contain a symbol" }),
-
-
-  displayName: z.string().min(3).max(20),
-
+    displayName: z.string()
+        .min(3, "Display name must be at least 3 characters")
+        .max(20, "Display name must be at most 20 characters")
 
 });
 export const RegisterPage = () => {
@@ -28,6 +34,7 @@ export const RegisterPage = () => {
     let { data: questionsData, isLoading: questionsIsLoading, isError: questionsIsError, error: questionsError} = useGetQuestions();
 
     const {useRegisterAsync} = useRegister()
+    const {useCreateLogAsync} = useCreateLog()
     const {addError} = useContext(ErrorContext);
 
     const [usernameInput, setUsernameInput] = useState("");
@@ -50,8 +57,13 @@ export const RegisterPage = () => {
                 const flattenedErrors = e.flatten().fieldErrors;
 
                 const errorMessages = Object.values(flattenedErrors).flat();
+                const joinedMessages = errorMessages.join("_");
 
                 errorMessages.forEach(msg => addError(msg));
+                
+                await useCreateLogAsync({ message: "Invalid input provided during registration.", role: "", status: "fail", timestamp: new Date()})
+
+
             }
             return; // Stop the submission
         }

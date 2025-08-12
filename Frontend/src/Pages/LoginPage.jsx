@@ -34,6 +34,8 @@ export const LoginPage = () => {
         e.preventDefault()
 
 
+       
+
 
 
 
@@ -46,6 +48,11 @@ export const LoginPage = () => {
             setIsLoggedIn(true)
             setRole(result.data.data.role)
             setUserId(result.data.data.userId)
+
+
+
+            queryClient.invalidateQueries({ queryKey: ['userPublicInfo'] });
+
             if(result.data.data.role === "admin"){
                 console.log("admin here");
                 navigate('/admin/logs')
