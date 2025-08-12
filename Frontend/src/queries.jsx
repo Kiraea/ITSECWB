@@ -400,6 +400,8 @@ export const useForgotPassword = () => {
 
 
 export const createLog = async ({ message, role, status, timestamp }) => {
+
+
     try {
         const result = await axiosInstance.post(`http://localhost:3000/api/logs/log`, {
             message,

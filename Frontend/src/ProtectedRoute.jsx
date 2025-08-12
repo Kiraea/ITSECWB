@@ -1,12 +1,13 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { AuthContext } from "./Context/AuthContext";
 import { useNavigate } from "react-router";
-import { useCreateLog} from "./queries"; // <-- import our log mutation
+import { useCreateLog } from "./queries";
 
 export const ProtectedRoute = ({ children, roles }) => {
     const { role, isLoading, isLoggedIn } = useContext(AuthContext);
     const navigate = useNavigate();
-    const { useCreateLogAsync } = useCreateLog(); // mutation hook
+    const { useCreateLogAsync } = useCreateLog();
+    const isMounted = useRef(true);
 
     useEffect(() => {
         const checkAccess = async () => {
@@ -32,5 +33,11 @@ export const ProtectedRoute = ({ children, roles }) => {
         return <div>Loading...</div>;
     }
 
-    return children;
+    // Only render children when properly authorized
+    if (isLoggedIn && roles.includes(role)) {
+        return children;
+    }
+
+    // Show nothing during redirect process
+    return null;
 };
