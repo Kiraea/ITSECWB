@@ -39,7 +39,7 @@ export const ForgotPasswordPage = () => {
 
     return (
         <div>
-            <form onSubmit={handleForgotPasswordSubmit}>
+            <form onSubmit={handleForgotPasswordSubmit} className="flex flex-col">
                 <label>Username</label>
                 <input type="text" onChange={(e) => { setUsernameInput(e.target.value) }} />
 

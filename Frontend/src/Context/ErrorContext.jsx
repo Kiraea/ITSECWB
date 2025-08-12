@@ -18,7 +18,7 @@ export const ErrorContextProvider = ({ children }) => {
         if (errorMessages.length > 0) {
             const timer = setTimeout(() => {
                 clearAllErrors();
-            }, 1500);
+            }, 10000);
             return () => clearTimeout(timer); 
         }
     }, [errorMessages]); 

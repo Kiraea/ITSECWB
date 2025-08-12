@@ -349,7 +349,13 @@ export const useRegister = () => {
             queryClient.invalidateQueries({ queryKey: ['logs'] });
         },
         onError: (e) => {
-            addError(e.response.data?.message)
+            const messages = e.response.data?.messages;
+
+            if (Array.isArray(messages)) {
+                messages.forEach(msg => addError(msg)); // This will now run for all validation errors
+            } else if (e.response.data?.message) {
+                addError(e.response.data.message);
+            }
         }
     });
     return { useRegisterAsync}
@@ -393,7 +399,38 @@ export const useForgotPassword = () => {
 
 
 
+export const createLog = async ({ message, role, status, timestamp }) => {
+    try {
+        const result = await axiosInstance.post(`http://localhost:3000/api/log`, {
+            message,
+            role,
+            status,
+            timestamp
+        });
+        return result.data;
+    } catch (e) {
+        if (e instanceof AxiosError) {
+            throw e;
+        }
+    }
+};
 
+export const useCreateLog = () => {
+    const queryClient = useQueryClient();
+    const { addError } = useContext(ErrorContext);
+
+    const { mutateAsync: useCreateLogAsync } = useMutation({
+        mutationFn: createLog,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['logs'] });
+        },
+        onError: (e) => {
+            addError(e.response.data?.message) //remove
+        }
+    });
+
+    return { useCreateLogAsync };
+};
 
 
 

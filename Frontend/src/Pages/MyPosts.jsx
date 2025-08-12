@@ -20,7 +20,6 @@ export const MyPosts = () => {
     if (postIsLoading){
         return <div>Is Loading ....</div>
     }
-
     return (
         <div className="min-h-screen flex flex-col box-border gap-5">
             <Header />

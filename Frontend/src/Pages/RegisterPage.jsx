@@ -40,15 +40,20 @@ export const RegisterPage = () => {
 
     const handleRegisterSubmit = async (e) => {
 
-
+    
         e.preventDefault()
         try{
             const input = {username: usernameInput, password: passwordInput, displayName: displayNameInput};
             const data = UserRegisterSchema.parse(input)
-        }catch(e){
-            const errors = z.prettifyError(e);
-            addError(errors);
-            return;
+        } catch (e) {
+            if (e instanceof z.ZodError) {
+                const flattenedErrors = e.flatten().fieldErrors;
+
+                const errorMessages = Object.values(flattenedErrors).flat();
+
+                errorMessages.forEach(msg => addError(msg));
+            }
+            return; // Stop the submission
         }
         if (securityQuestionIdInput === -1){
             addError("choose a security question");
@@ -70,7 +75,7 @@ export const RegisterPage = () => {
 
     return (
         <div>
-             <form onSubmit={handleRegisterSubmit}>
+             <form onSubmit={handleRegisterSubmit} className="flex flex-col">
                 <label>Username</label>
                 <input type="text" onChange={(e)=> {setUsernameInput(e.target.value)}}/>
 

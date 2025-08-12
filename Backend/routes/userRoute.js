@@ -3,7 +3,6 @@ import { connection } from '../index.js';
 import argon from 'argon2'; 
 import { verifySessionToken,verifyRole } from '../sessionUtils.js';
 import { putToLogTable } from '../logUtils.js';
-import { limiter } from '../limiterUtil.js';
 
 import { z } from "zod/v4";
 
@@ -18,36 +17,49 @@ const UserRegisterSchema = z.object({
 const router = express.Router()
 
 router.post('/register', async (req, res) => {
+    let { username, password, displayName, securityQuestionId, answer } = req.body;
 
-    let {username, password, displayName, securityQuestionId, answer} = req.body;
+    // --- FIX 1: Send an array for this error ---
+    if (!username || !password || !displayName) {
+        // Always use the `messages` key with an array
+        return res.status(400).json({ messages: ["Incomplete fields"], status: "fail" });
+    }
+
     securityQuestionId = Number(securityQuestionId);
 
-    if (!username || !password ||  !displayName){
-        res.status(400).json({message: "incomplete fields", status:"fail"});
-    }
-
+    // --- FIX 2: Send an array for this error ---
     if (!securityQuestionId || isNaN(securityQuestionId)) {
-        return res.status(400).json({ message: "Invalid security question ID", status: "fail" });
-      }
+        // Always use the `messages` key with an array
+        return res.status(400).json({ messages: ["Invalid security question ID"], status: "fail" });
+    }
 
     try {
-        const input = { username: username, password: password, displayName: displayName }
-        const data = UserRegisterSchema.parse(input)
+        const input = { username, password, displayName };
+        UserRegisterSchema.parse(input);
+
+        // ... your success logic here ...
+
     } catch (e) {
-        const errors = z.prettifyError(e);
+        if (e instanceof z.ZodError) {
+            // This part is already correct! It sends a `messages` array.
+            const flattenedErrors = e.flatten().fieldErrors;
+            const errorMessages = Object.values(flattenedErrors).flat();
+            
+            // DO NOT do this: const errorMessages = Object.values(flattenedErrors).flat().join(';');
+            // Send the raw array as you are doing now.
+            return res.status(400).json({ messages: errorMessages, status: "fail" });
+        }
 
-        res.status(400).json({message: errors, status:"fail"});
-        return;
+        console.error(e);
+        return res.status(500).json({ messages: ["An unexpected server error occurred."], status: "fail" });
     }
-
-
-
 
     try{
         let checkIfExistQuery = `SELECT u.* FROM user u WHERE u.username = ?`
         let [checkIfExist] = await connection.query(checkIfExistQuery, [username]);
 
         if (checkIfExist.length > 0){
+
 
             try {
                 let currDate = new Date()
@@ -127,9 +139,7 @@ router.post('/register', async (req, res) => {
 
 
 
-    }catch(e){
-
-
+    }catch(e){  
             try {
                 let currDate = new Date()
                 await putToLogTable(null, `someone tried to register but display name already taken`, null, "fail", currDate)
@@ -344,7 +354,7 @@ router.post('/login', async (req, res) => {
 
             // 4. lockout if 5
             if (verify[0].no_of_attempts >= 5) {
-                const lockoutMinutes = 15;
+                const lockoutMinutes = 1;
                 const lockoutTime = new Date(Date.now() + lockoutMinutes * 60000);
 
                 await connection.execute(
@@ -421,6 +431,7 @@ router.post('/logout', verifySessionToken, verifyRole, async (req, res) => {
 
 // ONLY ADMIN CAN ACCESS
 router.get('/', verifySessionToken, verifyRole, async (req,res)=> {
+    let userId = req.userId
     if (req.role !== 'admin'){
 
             try {
@@ -609,6 +620,100 @@ router.post('/forgotPassword', async (req,res)=>  {
 })
 
 
+
+// Add this new route to userRoute.js
+router.post('/changePassword', verifySessionToken, verifyRole, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.userId;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ 
+            message: "Current password and new password are required", 
+            status: "fail" 
+        });
+    }
+
+    try {
+        // Get user details including password_last_changed
+        const [userResults] = await connection.query(
+            `SELECT * FROM user WHERE id = ?`, 
+            [userId]
+        );
+
+        if (userResults.length === 0) {
+            return res.status(404).json({ message: "User not found", status: "fail" });
+        }
+
+        const user = userResults[0];
+
+        // 2.1.11 - Check if password is at least 1 day old
+        const now = new Date();
+        const passwordAge = now - new Date(user.password_last_changed);
+        const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+        if (passwordAge < oneDayInMs) {
+            const hoursLeft = Math.ceil((oneDayInMs - passwordAge) / (60 * 60 * 1000));
+            
+            try {
+                await putToLogTable(userId, `User ${userId} tried to change password but it's too recent`, user.role, "fail", new Date());
+            } catch (e) {
+                console.log(e);
+            }
+
+            return res.status(400).json({ 
+                message: `Password can only be changed once every 24 hours. Try again in ${hoursLeft} hours.`, 
+                status: "fail" 
+            });
+        }
+
+        // 2.1.13 - Re-authenticate user by verifying current password
+        const isCurrentPasswordValid = await argon.verify(user.password, currentPassword);
+        if (!isCurrentPasswordValid) {
+            try {
+                await putToLogTable(userId, `User ${userId} failed password change - incorrect current password`, user.role, "fail", new Date());
+            } catch (e) {
+                console.log(e);
+            }
+
+            return res.status(400).json({ 
+                message: "Current password is incorrect", 
+                status: "fail" 
+            });
+        }
+
+        // Hash new password and update
+        const hashedNewPassword = await argon.hash(newPassword);
+        await connection.query(
+            `UPDATE user SET password = ?, password_last_changed = CURRENT_TIMESTAMP WHERE id = ?`,
+            [hashedNewPassword, userId]
+        );
+
+        try {
+            await putToLogTable(userId, `User ${userId} successfully changed password`, user.role, "success", new Date());
+        } catch (e) {
+            console.log(e);
+        }
+
+        return res.status(200).json({ 
+            message: "Password changed successfully", 
+            status: "success" 
+        });
+
+    } catch (error) {
+        console.error('Password change error:', error);
+        
+        try {
+            await putToLogTable(userId, `User ${userId} password change failed - server error`, req.role, "fail", new Date());
+        } catch (e) {
+            console.log(e);
+        }
+
+        return res.status(500).json({ 
+            message: "Server error, please try again", 
+            status: "fail" 
+        });
+    }
+});
 
 
 export {router}

@@ -32,3 +32,6 @@ const putToLogTable = async  (userId, message, role, status, timestamp) => {
 
 
 export {putToLogTable};
+
+
+

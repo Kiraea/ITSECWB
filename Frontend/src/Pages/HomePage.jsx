@@ -32,7 +32,6 @@ export const HomePage= () => {
         useDeletePostAsync({postId})
     }
 
-
     return (
         <div className="min-h-screen flex flex-col box-border gap-5">
             <Header/>

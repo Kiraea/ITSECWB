@@ -68,7 +68,7 @@ export const LoginPage = () => {
 
     return (
         <div>
-             <form onSubmit={handleLoginSubmit}>
+             <form onSubmit={handleLoginSubmit} className="flex flex-col">
                 <label>Username</label>
                 <input type="text" onChange={(e)=> {setUsernameInput(e.target.value)}}/>
 
@@ -77,7 +77,10 @@ export const LoginPage = () => {
                 <button type="submit">Submit</button>
 
              </form>
-             <Link to='/resetPassword'>Forgot Your Password?</Link>
+             <div className="flex-col">
+                <Link to='/resetPassword'>Forgot Your Password?</Link>
+                <Link to='/register'>Haven't login? Click here</Link>
+             </div>
         </div>
     )
 }
