@@ -8,9 +8,26 @@ import { z } from "zod/v4";
 
 
 const UserRegisterSchema = z.object({
-  username: z.string().min(5).max(20),
-  password: z.string().min(8).max(20),
-  displayName: z.string().min(3).max(20),
+
+//edited this part for data validation
+
+        username: z.string()
+        .min(5, "Username must be at least 5 characters")
+        .max(20, "Username must be at most 20 characters")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter") //should have lowercase
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter"), //should have uppercase
+
+        password: z.string()
+        .min(8, "Password must be at least 8 characters") //min 8 length
+        .max(64, "Password must be at most 64 characters") //max 20 length
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter") //should have lowercase
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter") //should have uppercase 
+        .regex(/\d/, "Password must contain at least one number") // EDIT: number check
+        .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"), //should have special char 
+
+        displayName: z.string()
+        .min(3, "Display name must be at least 3 characters")
+        .max(20, "Display name must be at most 20 characters")
 });
 
 
@@ -32,6 +49,25 @@ router.post('/register', async (req, res) => {
         // Always use the `messages` key with an array
         return res.status(400).json({ messages: ["Invalid security question ID"], status: "fail" });
     }
+
+ //Edits to include the Username, Password, and DisplayName Validation
+        //Checks if username uses a-z, A-Z and numbers 0-9
+        if (typeof username !== 'string' || username.length < 5 || username.length > 20 || !/^[a-zA-Z0-9]+$/.test(username)) {
+            return res.status(400).json({ error: 'Username must be 5–20 characters, and only inlcudes letters and numbers.' });
+        }
+
+        //Checks if password is 8–64 chars, includes uppercase, lowercase, numbers, and special character
+        if (typeof password !== 'string' || password.length < 8 || password.length > 64 ||
+            !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+            return res.status(400).json({ error: 'Password must be 8–64 chars, include a uppercase letter, lowercase letter, a number, and a special character.' });
+        }
+
+        //Checks if username uses a-z, A-Z and numbers 0-9
+        if (typeof displayName !== 'string' || displayName.length < 3 || displayName.length > 20 || !/^[a-zA-Z0-9]+$/.test(displayName)) {
+            return res.status(400).json({ error: 'Display name must be 3–20 characters and only inlcudes letters and numbers' });
+        }
+//Until Here
+
 
     try {
         const input = { username, password, displayName };
@@ -94,10 +130,6 @@ router.post('/register', async (req, res) => {
         }
 
         let hashedPassword = await argon.hash(password);
-
-
-
-
 
         let createUserQuery = 'INSERT INTO user (username, password, display_name, role) VALUES (?, ? ,?, ?)';
         
@@ -271,6 +303,19 @@ router.post('/createUser', verifySessionToken, verifyRole, async (req, res) => {
 
 router.post('/login', async (req, res) => {
     const {username, password} = req.body
+
+
+    //Data Validation here for username (a-z and A-Z and Number)
+    if (typeof username !== 'string' || username.length < 5 || username.length > 20 || !/^[a-zA-Z0-9]+$/.test(username)) {
+        return res.status(400).json({ message: "Invalid username format", status: "fail" });
+    }
+
+    //Data Validation here for password (a-z and A-Z and Number)
+    if (typeof password !== 'string' || password.length < 8 || password.length > 64) {
+        return res.status(400).json({ message: "Invalid password length", status: "fail" });
+    }
+
+
     console.log(username, password, "KDOSAKDOA")
     let findUserQuery = `
         SELECT u.*
