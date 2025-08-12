@@ -179,9 +179,9 @@ const runBackend = async () => {
     await connection.query(
         `INSERT INTO user(username, password, display_name, role) 
         VALUES
-            ('regular', '$argon2d$v=19$m=12,t=3,p=1$YXcwbXBybHNhN2owMDAwMA$KjX0TCkIrTxeBp0DjTQF8A', 'regular', 'regular'),
-        ('manager', '$argon2d$v=19$m=12,t=3,p=1$emcyZnJ4c3JzbXQwMDAwMA$HdsNhHAOl1vqOH9sg84TYw', 'manager', 'manager'),
-        ('admin2', '$argon2d$v=19$m=12,t=3,p=1$Y2V5cG52cTZ5d2kwMDAwMA$QCNItiwLtih/EoxP0/LuEw', 'admin2', 'admin');`
+            ('regular', '$argon2d$v=19$m=12,t=3,p=1$ZXoycWpwdmxoZ2IwMDAwMA$WtLJ+mfTkr4sBFmc/VApKw', 'regular', 'regular'),
+        ('manager', '$argon2d$v=19$m=12,t=3,p=1$Njh6bjR2dXB2aGswMDAwMA$MfrFWX0BYjBg+eaUu0VFtg', 'manager', 'manager'),
+        ('admin2', '$argon2d$v=19$m=12,t=3,p=1$a3M5MmRnZWhtN2owMDAwMA$4nkX1auj6b4gypGiJg90Yw', 'admin2', 'admin');`
         
     )
 
