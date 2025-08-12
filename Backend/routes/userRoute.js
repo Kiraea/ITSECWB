@@ -10,19 +10,23 @@ import { z } from "zod/v4";
 const UserRegisterSchema = z.object({
 
 //edited this part for data validation
-
+//===============================================
+//  2.3.2 Validate data range
+//  2.3.3 Validate data length
+//===============================================
         username: z.string()
         .min(5, "Username must be at least 5 characters")
         .max(20, "Username must be at most 20 characters")
         .regex(/[a-z]/, "Password must contain at least one lowercase letter") //should have lowercase
-        .regex(/[A-Z]/, "Password must contain at least one uppercase letter"), //should have uppercase
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter") //should have uppercase 
+        .regex(/\d/, "Password must contain at least one number"), //should have at least one digit
 
         password: z.string()
         .min(8, "Password must be at least 8 characters") //min 8 length
         .max(64, "Password must be at most 64 characters") //max 20 length
         .regex(/[a-z]/, "Password must contain at least one lowercase letter") //should have lowercase
         .regex(/[A-Z]/, "Password must contain at least one uppercase letter") //should have uppercase 
-        .regex(/\d/, "Password must contain at least one number") // EDIT: number check
+        .regex(/\d/, "Password must contain at least one number") //should have at least one digit
         .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"), //should have special char 
 
         displayName: z.string()
@@ -301,7 +305,11 @@ router.post('/createUser', verifySessionToken, verifyRole, async (req, res) => {
 
 
 
-
+//================================================================================================
+//  2.3.1 All validation failures should result in input rejection. Sanitizing should not be used
+//  2.3.2 Validate data range
+//  2.3.3 Validate data length
+//================================================================================================
 
 router.post('/login', async (req, res) => {
     const {username, password} = req.body
