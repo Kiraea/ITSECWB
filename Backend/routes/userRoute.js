@@ -18,14 +18,15 @@ const UserRegisterSchema = z.object({
         .min(5, "Username must be at least 5 characters")
         .max(20, "Username must be at most 20 characters")
         .regex(/[a-z]/, "Password must contain at least one lowercase letter") //should have lowercase
-        .regex(/[A-Z]/, "Password must contain at least one uppercase letter"), //should have uppercase
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter") //should have uppercase 
+        .regex(/\d/, "Password must contain at least one number"), //should have at least one digit
 
         password: z.string()
         .min(8, "Password must be at least 8 characters") //min 8 length
         .max(64, "Password must be at most 64 characters") //max 20 length
         .regex(/[a-z]/, "Password must contain at least one lowercase letter") //should have lowercase
         .regex(/[A-Z]/, "Password must contain at least one uppercase letter") //should have uppercase 
-        .regex(/\d/, "Password must contain at least one number") // EDIT: number check
+        .regex(/\d/, "Password must contain at least one number") //should have at least one digit
         .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"), //should have special char 
 
         displayName: z.string()
@@ -71,8 +72,8 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ error: 'Password must be 8–64 chars, include a uppercase letter, lowercase letter, a number, and a special character.' });
         }
 
-        //Checks if username uses a-z, A-Z and numbers 0-9
-        if (typeof displayName !== 'string' || displayName.length < 3 || displayName.length > 20 || !/^[a-zA-Z0-9]+$/.test(displayName)) {
+        //Checks if displpayname is at least be 3 but cannot be more than 20
+        if (typeof displayName !== 'string' || displayName.length < 3 || displayName.length > 20) {
             return res.status(400).json({ error: 'Display name must be 3–20 characters and only inlcudes letters and numbers' });
         }
 //Until Here
@@ -316,19 +317,7 @@ router.post('/createUser', verifySessionToken, verifyRole, async (req, res) => {
 
 router.post('/login', async (req, res) => {
     const {username, password} = req.body
-
-
-    //Data Validation here for username (a-z and A-Z and Number)
-    if (typeof username !== 'string' || username.length < 5 || username.length > 20 || !/^[a-zA-Z0-9]+$/.test(username)) {
-        return res.status(400).json({ message: "Invalid username or password", status: "fail" });
-    }
-
-    //Data Validation here for password (a-z and A-Z and Number)
-    if (typeof password !== 'string' || password.length < 8 || password.length > 64) {
-        return res.status(400).json({ message: "Invalid username or password", status: "fail" });
-    }
-
-
+    
     console.log(username, password, "KDOSAKDOA")
     let findUserQuery = `
         SELECT u.*
